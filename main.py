@@ -77,6 +77,11 @@ class InstagramDownloaderGUI:
         
         # Downloader Instance
         self.downloader = InstagramDownloader()
+        
+        # Check initial login status
+        if self.downloader.current_user:
+            self.update_status(f"System: Found existing session for '{self.downloader.current_user}'")
+            self.status_label.config(text=f"Logged in: {self.downloader.current_user}", foreground="#262626")
 
     def update_status(self, message):
         self.root.after(0, self._update_status, message)
@@ -98,7 +103,8 @@ class InstagramDownloaderGUI:
         def run_login():
             if self.downloader.login(user, pw):
                 self.root.after(0, lambda: messagebox.showinfo("Success", "Login successful!"))
-                self.update_status("System: Authentication logic completed.")
+                self.root.after(0, lambda: self.status_label.config(text=f"Logged in: {user}", foreground="#262626"))
+                self.update_status(f"System: Synchronized session for '{user}'")
             else:
                 self.root.after(0, lambda: messagebox.showerror("Failed", "Authentication failed."))
         
