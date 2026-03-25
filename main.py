@@ -60,9 +60,16 @@ class InstagramDownloaderGUI:
         self.username_entry = ttk.Entry(self.target_card, font=("Segoe UI", 12))
         self.username_entry.pack(fill="x", pady=10)
 
-        self.download_button = ttk.Button(self.target_card, text="START DOWNLOAD", 
+        button_frame = tk.Frame(self.target_card, bg="white")
+        button_frame.pack(fill="x", pady=5)
+
+        self.download_pic_button = ttk.Button(button_frame, text="DOWNLOAD PROFILE PIC", 
+                                          style="Download.TButton", command=self.start_download_pic)
+        self.download_pic_button.pack(side="left", fill="x", expand=True, padx=(0, 5))
+
+        self.download_button = ttk.Button(button_frame, text="DOWNLOAD POSTS", 
                                           style="Download.TButton", command=self.start_download)
-        self.download_button.pack(fill="x", pady=5)
+        self.download_button.pack(side="right", fill="x", expand=True, padx=(5, 0))
 
         # --- Status Area ---
         self.status_frame = tk.Frame(self.main_container, bg="#fafafa")
@@ -142,6 +149,40 @@ class InstagramDownloaderGUI:
             self.root.after(0, lambda: messagebox.showerror("Error", f"Fatal Error: {str(e)}"))
         finally:
             self.root.after(0, lambda: self.download_button.state(['!disabled']))
+            self.root.after(0, lambda: self.download_pic_button.state(['!disabled']))
+
+    def start_download_pic(self):
+        username = self.username_entry.get().strip()
+        if not username:
+            messagebox.showwarning("Input Error", "Enter a username.")
+            return
+
+        self.status_text.delete(1.0, tk.END)
+        self.download_button.state(['disabled'])
+        self.download_pic_button.state(['disabled'])
+        threading.Thread(target=self.run_download_pic, args=(username,), daemon=True).start()
+
+    def run_download_pic(self, username):
+        try:
+            # Sanitization: Extract username from URL if provided
+            username = username.strip()
+            if "instagram.com/" in username:
+                parts = username.rstrip('/').split('/')
+                username = parts[-1]
+            
+            # Defensive check for repetitions (useruser -> user)
+            halflen = len(username) // 2
+            if len(username) > 4 and username[:halflen] == username[halflen:]:
+                username = username[:halflen]
+
+            success = self.downloader.download_profile_picture(username, callback=self.update_status)
+            if success:
+                self.root.after(0, lambda: messagebox.showinfo("Finished", f"Successfully saved profile picture for {username}"))
+        except Exception as e:
+            self.root.after(0, lambda: messagebox.showerror("Error", f"Fatal Error: {str(e)}"))
+        finally:
+            self.root.after(0, lambda: self.download_button.state(['!disabled']))
+            self.root.after(0, lambda: self.download_pic_button.state(['!disabled']))
 
 if __name__ == "__main__":
     root = tk.Tk()

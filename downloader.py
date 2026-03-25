@@ -123,6 +123,37 @@ class InstagramDownloader:
             if callback: callback(f"Status: Stopped ({str(e)})")
             return False
 
+    def download_profile_picture(self, username, callback=None):
+        """
+        Downloads only the profile picture of the given username.
+        :param username: The Instagram username to download from.
+        :param callback: A function to call with status updates.
+        """
+        try:
+            if callback: callback(f"Fetching profile picture for: {username}...")
+            
+            # Using instaloader's built-in download_profile to download just the pic
+            self.loader.download_profile(username, profile_pic_only=True)
+            
+            if callback: callback(f"Success! Downloaded profile picture for {username}.")
+            return True
+
+        except instaloader.exceptions.ProfileNotExistsException:
+            if callback: callback(f"Error: Profile '{username}' does not exist.")
+            return False
+        except instaloader.exceptions.ConnectionException as e:
+            if "401" in str(e) or "Unauthorized" in str(e):
+                if "Please wait a few minutes" in str(e):
+                    if callback: callback("Rate Limit: Instagram is asking to wait a few minutes before trying again.")
+                else:
+                    if callback: callback("Security Block: Instagram requires Login to access this profile.")
+            else:
+                if callback: callback(f"Network Issue: {str(e)}")
+            return False
+        except Exception as e:
+            if callback: callback(f"Status: Stopped ({str(e)})")
+            return False
+
 if __name__ == "__main__":
     # Quick test
     downloader = InstagramDownloader()
