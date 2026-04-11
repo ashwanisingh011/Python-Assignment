@@ -34,7 +34,7 @@ class InstagramDownloaderGUI:
                                          fg="#8e8e8e", padx=15, pady=15, bd=1, relief="solid")
         self.login_card.pack(fill="x", pady=10)
 
-        login_inner = tk.Frame(self.login_card, bg="white")
+        login_inner = tk.Frame(self.login_card, bg="darkblue", padx=10, pady=10)
         login_inner.pack(fill="x")
 
         ttk.Label(login_inner, text="Username:", background="white").grid(row=0, column=0, sticky="w", pady=5)
